@@ -1,0 +1,16 @@
+[project]
+name = "demo-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fsspec>=2025.3.2",
+    "ipython>=8.36.0",
+    "langchain>=0.3.25",
+    "langchain-community>=0.3.23",
+    "langchain-openai>=0.3.16",
+    "pre-commit>=4.2.0",
+    "pydantic>=2.11.4",
+    "pydantic-settings>=2.9.1",
+]
