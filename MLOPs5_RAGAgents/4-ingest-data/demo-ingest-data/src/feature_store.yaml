@@ -1,0 +1,27 @@
+project: mlops5
+provider: gcp
+registry:
+  registry_type: sql
+  path: postgresql+psycopg2://airflow:airflow@postgres:5432/feast
+  cache_ttl_seconds: 60
+  sqlalchemy_config_kwargs:
+    echo: false
+    pool_pre_ping: true
+online_store:
+  type: milvus
+  # path: ./online_store.db
+  host: http://milvus-standalone
+  port: 19530
+  vector_enabled: true
+  text_search_enabled: true
+  embedding_dim: 384
+  index_type: "IVF_FLAT"
+  metric_type: "L2"
+
+
+offline_store:
+  type: file
+entity_key_serialization_version: 3
+# By default, no_auth for authentication and authorization, other possible values kubernetes and oidc. Refer the documentation for more details.
+auth:
+    type: no_auth

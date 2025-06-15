@@ -1,0 +1,34 @@
+[project]
+name = "demo-ingest-data"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "apache-airflow==2.9.0",
+    "apache-airflow-providers-docker>=4.3.1",
+    "boto3>=1.38.13",
+    "click>=8.1.8",
+    "elasticsearch>=9.0.1",
+    "fastapi>=0.115.12",
+    "fsspec>=2025.3.2",
+    "huggingface-hub>=0.30.2",
+    "ipython>=8.36.0",
+    "langchain>=0.3.25",
+    "langchain-community>=0.3.0",
+    "langchain-openai>=0.3.16",
+    "langgraph>=0.4.1",
+    "pandas>=2.2.3",
+    "pre-commit>=4.2.0",
+    "pyarrow>=17.0.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.9.1",
+    "pymilvus>=2.5.8",
+    "uvicorn[standard]>=0.34.0",
+    "minio>=7.1.0",
+    "feast>=0.48.0",
+    "numpy>=1.22.0",
+    "protobuf>=5.0.0",
+    "sentence-transformers>=4.1.0",
+    "psycopg2>=2.9.10",
+]
