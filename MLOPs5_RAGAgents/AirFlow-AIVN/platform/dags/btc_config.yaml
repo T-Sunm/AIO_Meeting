@@ -1,4 +1,4 @@
-version: v0.1
+version: v0.2
 hidden_size: 128
 num_layers: 2
 lr: 0.001
