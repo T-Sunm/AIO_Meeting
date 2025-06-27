@@ -8,6 +8,9 @@ from plugins.jobs.embed_and_store import embed_and_store
 # Settings
 DATASET_PATH = "hf://datasets/rag-datasets/rag-mini-wikipedia/data/passages.parquet/part.0.parquet"
 MINIO_ENDPOINT = "http://localhost:9000"
+
+# Access keys: yfx0EPVdDTxJKKw0
+# Secret keys: Mr4S4iPqKS7tjpc0e6Wrp6X7r0vvFgvs
 MINIO_ACCESS_KEY = Variable.get("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = Variable.get("MINIO_SECRET_KEY")
 MINIO_PATH = "rag-pipeline/chunks.pkl"

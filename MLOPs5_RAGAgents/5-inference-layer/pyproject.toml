@@ -1,0 +1,12 @@
+[project]
+name = "5-inference-layer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ai-dynamo[all]==0.2.0",
+    "ai-dynamo-runtime==0.2.0",
+    "vllm",
+    "tensorboardx>=2.6.2.2",
+]
