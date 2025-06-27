@@ -15,7 +15,7 @@ chmod +x ./deploy.sh
 To start the airflow server, worker,... run the following commands:
 
 ```bash
-cd airflow
+cd airflowd error occurred
 
 # Initialize the folders
 mkdir -p ./dags ./logs ./plugins ./config
