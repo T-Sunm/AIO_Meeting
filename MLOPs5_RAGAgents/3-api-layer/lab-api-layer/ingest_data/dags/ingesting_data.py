@@ -11,8 +11,12 @@ import json
 import wget
 from plugins.jobs.download import file_links
 from plugins.utils import check_src_data
+from plugins.jobs.load_and_chunk import LoadAndChunk
+
 
 dataset_folder = os.getenv("INLINE_DATA_VOLUME")
+MINIO_PATH = "rag-pipeline/chunks.pkl"
+
 
 default_args = {
     'owner': 'airflow',
@@ -31,13 +35,23 @@ def start_task():
     os.makedirs(folder_path, exist_ok=True)
     
     for file_link in file_links:
-        if not check_src_data(file_link):
+        dest_file_path = os.path.join(folder_path, f"{file_link['title']}.pdf")
+        if not check_src_data(dest_file_path):
             print(f"Downloading {file_link['title']}...")
-            wget.download(file_link["url"], out=os.path.join(folder_path, f"{file_link['title']}.pdf"))
+            wget.download(file_link["url"], out=dest_file_path)
         else:
             print(f"File {file_link['title']}.pdf already exists, skipping download.")
     
     return {"status": "completed", "folder_path": folder_path}
+
+
+@task()
+def load_and_chunk_data():
+    loader = LoadAndChunk()
+    pdf_files = loader.load_dir(dataset_folder, workers=2)
+    chunks = loader.read_and_chunk(pdf_files, workers=2)
+    loader.ingest_to_minio(chunks, MINIO_PATH)
+    
 
 # Create DAG
 with DAG(
@@ -46,4 +60,10 @@ with DAG(
     description='A DAG to ingest data',
     schedule_interval=None,
 ) as dag:
+
+    # Tasks
     data = start_task()
+    load_and_chunk_data = load_and_chunk_data()
+
+    # task flow
+    data >> load_and_chunk_data

@@ -4,7 +4,15 @@
 AIRFLOW_HOME="./airflow"
 SOURCE_DIR="."
 
-# Create necessary directories in Airflow
+# Clean up existing directories
+echo "Cleaning up existing directories..."
+rm -rf "$AIRFLOW_HOME/dags"
+rm -rf "$AIRFLOW_HOME/plugins"
+rm -rf "$AIRFLOW_HOME/config"
+rm -rf "$AIRFLOW_HOME/logs"
+
+# Create fresh directories in Airflow
+echo "Creating fresh directories..."
 mkdir -p "$AIRFLOW_HOME/dags"
 mkdir -p "$AIRFLOW_HOME/plugins"
 mkdir -p "$AIRFLOW_HOME/config"
@@ -26,14 +34,19 @@ cp -rv "$SOURCE_DIR/config"/*.yaml "$AIRFLOW_HOME/config/" 2>/dev/null || echo "
 echo "Copying requirements file..."
 cp -v "$SOURCE_DIR/requirements.txt" "$AIRFLOW_HOME/"
 
+# Clean up Docker resources (optional)
+echo "Cleaning up Docker resources..."
+cd "$AIRFLOW_HOME"
+docker compose down -v
+docker compose rm -f -s -v
+docker volume prune -f
+
 echo "Deployment completed!"
 
-# Build and start Airflow containers
+# Uncomment below lines if you want to automatically start Airflow
 # echo "Starting Airflow containers..."
-# cd "$AIRFLOW_HOME"
-# docker-compose down -v
-# docker-compose build
-# docker-compose up -d
+# docker compose build --no-cache
+# docker compose up -d
 
 # echo "Airflow is starting up. Please wait a few minutes for all services to be ready."
 # echo "You can access the Airflow UI at http://localhost:8080"

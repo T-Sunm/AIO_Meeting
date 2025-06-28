@@ -1,25 +1,21 @@
-apache-airflow==2.9.0
-apache-airflow-providers-docker>=4.3.1
-boto3>=1.38.13
-click>=8.1.8
-elasticsearch>=9.0.1
-fastapi>=0.115.12
-fsspec>=2025.3.2
-huggingface-hub>=0.30.2
-ipython>=8.36.0
-langchain>=0.3.25
-langchain-community>=0.3.0
-langchain-openai>=0.3.16
-langgraph>=0.4.1
-pandas>=2.2.3
-pre-commit>=4.2.0
-pyarrow>=17.0.0
-pydantic>=2.10.0
-pydantic-settings>=2.9.1
-pymilvus>=2.5.8
-uvicorn[standard]>=0.34.0
-numpy>=1.22.0
-sentence-transformers>=4.1.0
-psycopg2>=2.9.10
-chromadb==1.0.13
-wget==3.2
+# Storage & Database
+chromadb==1.0.13        # Vector store
+minio==7.2.15          # Object storage
+boto3>=1.38.13         # AWS SDK (nếu cần S3)
+
+# Data Processing
+pandas>=2.2.3          # Data manipulation
+numpy>=1.22.0          # Numerical computing
+pyarrow>=17.0.0        # Efficient data format
+pypdf==5.6.1
+tqdm==4.67.1
+
+# LLM & Embeddings
+langchain>=0.3.25              # LLM framework
+langchain-community>=0.3.0     # Community components
+sentence-transformers>=4.1.0   # Embeddings
+huggingface-hub>=0.30.2       # Model hub
+
+# Utilities
+wget==3.2             # Download files
+pydantic>=2.10.0      # Data validation
