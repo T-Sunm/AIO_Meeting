@@ -1,22 +1,27 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator, task
+from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from datetime import timedelta
-import yaml
-import pandas as pd
-import numpy as np
 import os
-from pathlib import Path
-import json
 import wget
-from plugins.jobs.download import file_links
-from plugins.utils import check_src_data
-from plugins.jobs.load_and_chunk import LoadAndChunk
+import sys
+from pathlib import Path
+from airflow.decorators import task
+import chromadb
 
+# Add plugins directory to Python path
+AIRFLOW_HOME = Path("/opt/airflow")
+sys.path.append(str(AIRFLOW_HOME))
+from plugins.jobs.download import file_links
+from plugins.jobs.utils import check_src_data
+from plugins.jobs.load_and_chunk import LoadAndChunk
+from plugins.jobs.embed_and_store import EmbedAndStore
+from airflow.operators.empty import EmptyOperator
 
 dataset_folder = os.getenv("INLINE_DATA_VOLUME")
+directory_chromadb = os.getenv("PERSIST_DIRECTORY")
 MINIO_PATH = "rag-pipeline/chunks.pkl"
-
+collection_name = "rag-pipeline"
 
 default_args = {
     'owner': 'airflow',
@@ -44,14 +49,44 @@ def start_task():
     
     return {"status": "completed", "folder_path": folder_path}
 
+@task.branch()
+def check_collection_task(data):
+    """
+    Checks if the ChromaDB collection exists and branches accordingly.
+    """
+    try:
+        client = chromadb.PersistentClient(path=directory_chromadb)
+        client.get_collection(name=collection_name)
+        return "class_already_exists"
+    except ValueError:
+        return "create_class"
 
+@task()
+def create_class():
+    """Creates a new class in ChromaDB."""
+    print("Creating a new class in ChromaDB...")
+    return True  # Indicate that the class was created
+
+@task()
+def class_already_exists():
+    """Handles the case when the class already exists in ChromaDB."""
+    print("Class already exists in ChromaDB.")
+    return False  # Indicate that no class was created
+    
 @task()
 def load_and_chunk_data():
     loader = LoadAndChunk()
-    pdf_files = loader.load_dir(dataset_folder, workers=2)
-    chunks = loader.read_and_chunk(pdf_files, workers=2)
+    pdf_files = loader.load_dir(dataset_folder)
+    chunks = loader.read_and_chunk(pdf_files)
     loader.ingest_to_minio(chunks, MINIO_PATH)
-    
+    return {"status": "completed"}
+
+@task()
+def embed_and_store_data():
+    embedder = EmbedAndStore()
+    splits = embedder.minio_loader.download_from_minio(MINIO_PATH)
+    vectordb = embedder.document_embedding_vectorstore(splits, "rag-pipeline", directory_chromadb)
+    return {"status": "completed"}
 
 # Create DAG
 with DAG(
@@ -62,8 +97,16 @@ with DAG(
 ) as dag:
 
     # Tasks
-    data = start_task()
-    load_and_chunk_data = load_and_chunk_data()
-
-    # task flow
-    data >> load_and_chunk_data
+    start = start_task()
+    branch = check_collection_task(start)
+    create = create_class()
+    exists = class_already_exists()
+    load_chunk = load_and_chunk_data()
+    embed_store = embed_and_store_data()
+    end_task = EmptyOperator(task_id="end_task")
+    # Task flow
+    start >> branch
+    branch >> [create, exists]  # Branching
+    create >> load_chunk >> embed_store  # Process path
+    exists >> embed_store  # Skip path
+    embed_store >> end_task

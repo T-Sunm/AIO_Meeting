@@ -1,6 +1,3 @@
-import os
-import wget
-
 file_links = [
     {
         "title": "Attention Is All You Need",

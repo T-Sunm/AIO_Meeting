@@ -4,12 +4,9 @@ from tqdm import tqdm
 import multiprocessing
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from plugins.utils import Minio_Loader
-from airflow.models import Variable
+from plugins.jobs.utils import Minio_Loader
 
-MINIO_ENDPOINT = "http://localhost:9000"
-MINIO_ACCESS_KEY = Variable.get("MINIO_ACCESS_KEY")
-MINIO_SECRET_KEY = Variable.get("MINIO_SECRET_KEY")
+from plugins.config.minio import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY
 minio_loader = Minio_Loader(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY)
 
 
@@ -40,15 +37,13 @@ class PDFLoader(BaseLoader):
     def __init__(self) -> None:
         super().__init__()
 
-    def __call__(self, pdf_files: List[str], workers: int = 1):
-        num_processes = min(self.num_processes, workers)
-        with multiprocessing.Pool(processes=num_processes) as pool:
-            doc_loaded = []
-            total_files = len(pdf_files)
-            with tqdm(total=total_files, desc="Loading PDFs", unit="file") as pbar:
-                for result in pool.imap_unordered(load_pdf, pdf_files):
-                    doc_loaded.extend(result)
-                    pbar.update(1)
+    def __call__(self, pdf_files: List[str]):
+
+        doc_loaded = []
+        total_files = len(pdf_files)
+        for pdf_file in tqdm(pdf_files, total=total_files, desc="Loading PDFs", unit="file"):
+            result = load_pdf(pdf_file)
+            doc_loaded.extend(result)
         return doc_loaded
 
 
@@ -81,21 +76,21 @@ class LoadAndChunk:
         self.doc_loader = PDFLoader()
         self.doc_splitter = TextSplitter(**split_kwargs)
 
-    def read_and_chunk(self, pdf_files: Union[str, List[str]], workers: int = 1):
+    def read_and_chunk(self, pdf_files: Union[str, List[str]]):
         if isinstance(pdf_files, str):
             pdf_files = [pdf_files]
-        docs = self.doc_loader(pdf_files, workers=workers)
+        docs = self.doc_loader(pdf_files)
         return self.doc_splitter(docs)
     
 
     def ingest_to_minio(self, data, s3_path: str):
         minio_loader.upload_to_minio(data, s3_path)
 
-    def load_from_minio(self, s3_path: str, workers: int = 1):
+    def load_from_minio(self, s3_path: str):
         data = minio_loader.download_from_minio(s3_path)
         return data
     
-    def load_dir(self, dir_path: str, workers: int = 1):
+    def load_dir(self, dir_path: str):
         files = glob.glob(f"{dir_path}/*.pdf")
         assert files, f"No PDF files found in {dir_path}"
         return files
