@@ -1,14 +1,14 @@
 FROM apache/airflow:2.10.3
 
-# Set up C++11 for chromadb
+# Set up C++11 for chromadb and rapidocr- PyPDFLoader (libgl1)
 USER root
 RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     g++ \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
-
-# Switch back to airflow user
 USER airflow
 
 # Install Python packages

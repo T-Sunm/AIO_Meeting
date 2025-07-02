@@ -1,0 +1,6 @@
+# Ignore logs and cache/model files
+infra/logs/
+infra/volumes/
+feature_store/
+*.pyc
+__pycache__/

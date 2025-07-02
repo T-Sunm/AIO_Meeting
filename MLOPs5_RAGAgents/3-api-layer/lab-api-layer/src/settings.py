@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     PORT: int = 8000
 
     # OpenAI API key
-    OPENAI_API_KEY: SecretStr
-    OPENAI_TEMPERATURE: float = 0.7
-
+    LLMs_TEMPERATURE: float = 0.7
+    CHROMA_PERSIST_DIRECTORY: str = "../../DATA/chromadb"
+    CHROMA_COLLECTION_NAME: str = "rag-pipeline"
 
 SETTINGS = Settings()  # type: ignore
 

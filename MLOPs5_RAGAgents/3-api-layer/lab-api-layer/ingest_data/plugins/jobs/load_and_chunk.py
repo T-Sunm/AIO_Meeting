@@ -6,7 +6,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from plugins.jobs.utils import Minio_Loader
 
-from plugins.config.minio import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY
+from plugins.config.minio_config import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY
 minio_loader = Minio_Loader(MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY)
 
 

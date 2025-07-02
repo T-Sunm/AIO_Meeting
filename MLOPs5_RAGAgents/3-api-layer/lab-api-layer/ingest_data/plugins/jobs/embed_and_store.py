@@ -4,7 +4,7 @@ from langchain.schema import Document
 from langchain_chroma import Chroma
 from uuid import uuid4
 from plugins.jobs.utils import Minio_Loader
-from plugins.config.minio import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY
+from plugins.config.minio_config import MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY
 class EmbedAndStore:
     def __init__(self):
         # Initialize the embedding model

@@ -11,8 +11,7 @@ class Rag:
   def __init__(self, llm_callback: Optional[AsyncCallbackHandler] = None):
     self.llm = ChatOpenAI(
         openai_api_base="http://127.0.0.1:1234/v1",
-        api_key=SETTINGS.OPENAI_API_KEY,
-        temperature=SETTINGS.OPENAI_TEMPERATURE,
+        temperature=SETTINGS.LLMs_TEMPERATURE,
         streaming=True,
         callbacks=[llm_callback] if llm_callback else None,
     )

@@ -9,6 +9,7 @@ numpy>=1.22.0           # Numerical computing
 pyarrow>=17.0.0         # Efficient data format
 pypdf==5.6.1            # PDF parsing
 tqdm==4.67.1            # Progress bars
+rapidocr-onnxruntime==1.4.4
 
 # LLM & Embeddings
 langchain==0.1.14              # LLM framework

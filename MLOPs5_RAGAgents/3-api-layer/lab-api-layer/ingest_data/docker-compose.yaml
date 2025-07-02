@@ -72,6 +72,8 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
+    HF_HOME: /opt/airflow/hf_cache
+    TRANSFORMERS_CACHE: /opt/airflow/hf_cache
     AIRFLOW_VAR_MINIO_ACCESS_KEY: minioadmin
     AIRFLOW_VAR_MINIO_SECRET_KEY: minioadmin
     INLINE_DATA_VOLUME: /opt/data
@@ -83,8 +85,9 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
 
-    - ../../DATA/data_source:/opt/data
-    - ../../DATA/chromadb:/opt/chromadb
+    - ../DATA/data_source:/opt/data
+    - ../DATA/chromadb:/opt/chromadb
+    - ./hf_cache:/opt/airflow/hf_cache
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on

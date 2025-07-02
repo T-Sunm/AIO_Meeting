@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from airflow.decorators import task
 import chromadb
-
+from airflow.utils.trigger_rule import TriggerRule
 # Add plugins directory to Python path
 AIRFLOW_HOME = Path("/opt/airflow")
 sys.path.append(str(AIRFLOW_HOME))
@@ -81,7 +81,7 @@ def load_and_chunk_data():
     loader.ingest_to_minio(chunks, MINIO_PATH)
     return {"status": "completed"}
 
-@task()
+@task(trigger_rule=TriggerRule.ONE_SUCCESS)
 def embed_and_store_data():
     embedder = EmbedAndStore()
     splits = embedder.minio_loader.download_from_minio(MINIO_PATH)
