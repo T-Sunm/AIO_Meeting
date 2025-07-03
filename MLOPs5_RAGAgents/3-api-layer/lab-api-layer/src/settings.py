@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Connect the path with your '.env' file name
-load_dotenv(os.path.join(BASEDIR, "../.env"))
+# load_dotenv(os.path.join(BASEDIR, "../.env"))
 
 
 class Settings(BaseSettings):
@@ -20,10 +20,9 @@ class Settings(BaseSettings):
 
     # OpenAI API key
     LLMs_TEMPERATURE: float = 0.7
-    CHROMA_PERSIST_DIRECTORY: str = "../../DATA/chromadb"
     CHROMA_COLLECTION_NAME: str = "rag-pipeline"
 
-SETTINGS = Settings()  # type: ignore
+SETTINGS = Settings() 
 
 APP_CONFIGS: dict[str, Any] = {
     "title": "Lesson 3 - RAG - API Layer",

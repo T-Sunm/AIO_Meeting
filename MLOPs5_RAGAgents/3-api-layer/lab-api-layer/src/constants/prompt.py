@@ -1,6 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 
-template = ChatPromptTemplate.from_messages(
+template = ChatPromptTemplate(
     [
         (
             "system",

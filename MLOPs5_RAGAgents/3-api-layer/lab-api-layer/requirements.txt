@@ -11,9 +11,9 @@ pypdf==5.6.1            # PDF parsing
 tqdm==4.67.1            # Progress bars
 
 # LLM & Embeddings
-langchain==0.1.14              # LLM framework
-langchain-core==0.1.43         # Core components
-langchain-community==0.0.31    # Community components
+langchain==0.3.26               # LLM framework
+langchain-core==0.3.67         # Core components
+langchain-community==0.3.26    # Community components
 sentence-transformers==2.6.1   # Embeddings
 huggingface-hub==0.22.2       # Model hub
 langchain-chroma==0.1.0        # Chroma integration

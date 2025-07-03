@@ -3,7 +3,7 @@ from src.utils import logger
 
 
 # Define the retrieval function
-def retrieve(question: str):
+def retrieve(question: str, **kwargs):
     """Generate tool call for retrieval or respond."""
 
     # Perform the retrieval using the vector store
