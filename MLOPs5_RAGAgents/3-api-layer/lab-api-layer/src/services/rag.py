@@ -18,7 +18,7 @@ class Rag:
         callbacks=[llm_callback] if llm_callback else None,
     )
     self.chroma_client = ChromaClientService()
-    
+    self.chat_history: list[dict] = []
     self.search_tool = StructuredTool.from_function(
         name="search_docs",
         description=(
@@ -39,11 +39,15 @@ class Rag:
     self.llm_with_tools = self.llm.bind_tools(list(self.tools.values()))
 
   async def get_response(self, question: str):
+    self.chat_history.append({"role": "user", "content": question})
     response = await generate(
         llm_with_tools=self.llm_with_tools,
         tools=self.tools,
         question=question,
+        chat_history=self.chat_history
     )
+    self.chat_history.append({"role": "assistant", "content": response})
+    print(len(self.chat_history))
     return response
 
   async def get_sse_response(self, question: str):

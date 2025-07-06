@@ -1,4 +1,4 @@
-from src.constants.prompt import template
+from src.constants.prompt import temp_userinput, temp_rag
 from langchain_core.messages import AIMessage
 from langchain.tools import StructuredTool
 from langchain_core.runnables import Runnable
@@ -11,40 +11,47 @@ import re
 
 
 _THINK_RE = re.compile(r"<think>.*?</think>", flags=re.DOTALL)
-async def generate(llm_with_tools, tools: dict[str, StructuredTool], question: str):
+async def generate(llm_with_tools, tools: dict[str, StructuredTool], question: str, chat_history: list[dict]):
     try:
-        # 0) Tạo conversation
-        messages = template.format_messages(question=question)
-
-        # 1) Ask LLM for tool call
+        messages = temp_userinput.format_messages(question=question)
         ai_msg = await llm_with_tools.ainvoke(messages)
-        messages.append(ai_msg)
+        chat_history.append({"role": "assistant", "content": ai_msg.content, "tool_calls": ai_msg.additional_kwargs.get("tool_calls", [])})
 
-        # 2) Thực thi tool_calls nếu có
+        # Nếu LLM không gọi tool, clean up và trả luôn
         tool_calls = ai_msg.additional_kwargs.get("tool_calls", [])
-        for tool_call in tool_calls:
-            print(tool_call) # {'index': 0, 'id': '994979245', 'function': {'arguments': '{"user_input": "What do beetles eat?", "top_k": 3, "with_score": false}', 'name': 'search_docs'}, 'type': 'function'}
-            name = tool_call["function"]["name"].lower()
+        if not tool_calls:
+            return _THINK_RE.sub("", ai_msg.content or "").strip()
+
+        # --- PHASE 2: Run tool(s) & gather context ---
+        print(tool_calls)
+        all_context = []
+        for call in tool_calls:
+            name = call["function"]["name"].lower()
             if name not in tools:
                 raise ValueError(f"Unknown tool: {name}")
             tool_inst = tools[name]
 
-            # parse JSON arguments
-            payload = json.loads(tool_call["function"]["arguments"])
+            payload = json.loads(call["function"]["arguments"])
             result = tool_inst.invoke(payload)
-            print(f"Result {name}:", result)
-            messages.append(
-                ToolMessage(
-                    content=result,
-                    tool_call_id=tool_call.get("id")
-                )
-            )
+            all_context.append(result)
 
-        # 3) Ask LLM final answer
-        raw_resp = await llm_with_tools.ainvoke(messages)
-        content_resp = raw_resp.content
-        final_resp  = _THINK_RE.sub("", content_resp).strip()
-        return final_resp
+            # Append ToolMessage để LLM “biết” đã chạy tool
+            chat_history.append({"role": "assistant", "content": result})
+
+        # Gộp tất cả context lại thành một string (tuỳ bạn format)
+        context_str = "\n\n--- Retrieved Documents ---\n\n".join(all_context)
+
+        # --- PHASE 3: Tái prompt bằng temp_rag ---
+        prompt = temp_rag.format(
+            chat_history="\n".join(f"{m['role'].capitalize()}: {m['content']}" for m in chat_history),
+            question=question,
+            context=context_str
+        )
+        rag_msgs = [{"role": "system", "content": prompt}]
+        # Cuối cùng gọi LLM với template rag-prompt
+        raw = await llm_with_tools.ainvoke(rag_msgs)
+        answer = _THINK_RE.sub("", raw.content or "").strip()
+        return answer
 
     except Exception as e:
         logger.error(f"Error in generate(): {e}")
@@ -57,7 +64,7 @@ async def generate_stream(
 ):
     try:
         # 0) Tạo conversation
-        messages = template.format_messages(question=question)
+        messages = temp_userinput.format_messages(question=question)
 
         # 1) Ask LLM for tool call
         ai_msg = await llm_with_tools.ainvoke(messages)

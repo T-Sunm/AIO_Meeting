@@ -16,11 +16,16 @@ class Settings(BaseSettings):
     ROOT_PATH: str = ""
     API_V1_STR: str = "/v1"
     HOST: str = "0.0.0.0"
-    PORT: int = 8000
+    PORT: int = 8055
 
     # OpenAI API key
-    OPENAI_API_KEY: str = "dummy"
+    OPENAI_API_KEY: SecretStr
     OPENAI_TEMPERATURE: float = 0.7
+    
+    # Milvus configuration
+    MILVUS_HOST: str = "localhost"
+    MILVUS_PORT: str = "19530"
+    MILVUS_COLLECTION: str = "langchain_docs"
 
 
 SETTINGS = Settings()  # type: ignore
