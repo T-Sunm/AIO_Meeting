@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
 # Connect the path with your '.env' file name
-# load_dotenv(os.path.join(BASEDIR, "../.env"))
+load_dotenv(os.path.join(BASEDIR, "../.env"))
 
 
 class Settings(BaseSettings):
