@@ -1,12 +1,5 @@
 from pydantic import BaseModel, Field
 
-
-class UserInput(BaseModel):
-    user_input: str = Field(
-        description="User input",
-        default="What do beetles eat?",
-    )
-
 class SearchArgs(BaseModel):
     question: str = Field(
         description="User input",
