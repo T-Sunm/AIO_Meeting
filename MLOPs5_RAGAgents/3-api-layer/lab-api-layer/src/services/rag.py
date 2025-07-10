@@ -18,6 +18,7 @@ class Rag:
             temperature=SETTINGS.LLMs_TEMPERATURE,
             openai_api_key="dummy",
             streaming=True,
+            max_tokens=2048,
         )
         self.chroma_client = ChromaClientService()
         self.langfuse_handler = CallbackHandler()
@@ -93,17 +94,18 @@ class Rag:
         # Lấy history từ in-memory storage
         chat_history = self._get_session_history(session_id)
         
-        # Kiểm tra và summary nếu cần (mỗi 6 messages)
+        # Kiểm tra và summary nếu cần (mỗi 4 messages)
         if len(chat_history) >= 6:
             chat_history = await self.summarize_service._summarize_and_truncate_history(
-                chat_history, max_length=6
+                chat_history,
+                4
             )
             # Update lại session history sau khi summarize
             self.session_histories[session_id] = chat_history
         
         response = await self.generator_service.generate(
             question=question,
-            chat_history=chat_history,
+            chat_history=chat_history.copy(),
             session_id=session_id,
             user_id=user_id
         )
@@ -123,7 +125,8 @@ class Rag:
         chat_history = self._get_session_history(session_id)
         if len(chat_history) >= 6:
             chat_history = await self.summarize_service._summarize_and_truncate_history(
-                chat_history, max_length=6
+                chat_history,
+                4
             )
             self.session_histories[session_id] = chat_history
             
@@ -131,7 +134,7 @@ class Rag:
         full_response = ""
         async for message in self.generator_service.generate_stream(
             question=question,
-            chat_history=chat_history,
+            chat_history=chat_history.copy(),
             session_id=session_id,
             user_id=user_id
         ):

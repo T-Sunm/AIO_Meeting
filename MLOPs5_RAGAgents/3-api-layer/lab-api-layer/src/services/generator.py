@@ -46,7 +46,6 @@ class GeneratorService:
         ai_msg = await self.llm_with_tools.ainvoke(messages)
         return ai_msg, messages
     
-    @observe(name="tool_execution")
     async def _execute_tools(self, tool_calls: list, messages: list, session_id: str | None = None, user_id: str | None = None):
         self._update_trace_context(session_id, user_id)
 

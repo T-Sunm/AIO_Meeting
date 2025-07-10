@@ -22,43 +22,44 @@ class SummarizeService:
             openai_api_key="dummy",
             streaming=True,
         )
-    async def _summarize_and_truncate_history(self, chat_history: list[dict], max_length: int = 10) -> list[dict]:
-            """Summary chat history nếu quá dài"""
-            if len(chat_history) <= max_length:
-                return chat_history
+    async def _summarize_and_truncate_history(self, chat_history: list[dict], max_length: int = 4) -> list[dict]:
+        """Summary 4 messages cũ nhất và giữ lại phần còn lại"""
+        if len(chat_history) <= max_length:
+            return chat_history
+        
+        try:
+            # Lấy 6 messages cũ nhất để summary
+            old_messages = chat_history[:max_length]  # 6 messages đầu
+            remaining_messages = chat_history[max_length:]  # Phần còn lại
             
-            try:
-                # Lấy phần cũ để summary (trừ max_length messages cuối) 
-                old_messages = chat_history[:-max_length]
-                recent_messages = chat_history[-max_length:]
+            # Tạo summary từ 6 messages cũ
+            old_conversation = "\n".join([
+                f"{msg['role'].capitalize()}: {msg['content']}" 
+                for msg in old_messages
+            ])
+            
+            summary_prompt = f"""Summarize this conversation in Vietnamese, keeping key information:
+                {old_conversation}
                 
-                # Tạo summary prompt
-                old_conversation = "\n".join([
-                    f"{msg['role'].capitalize()}: {msg['content']}" 
-                    for msg in old_messages
-                ])
-                
-                summary_prompt = f"""Summarize this conversation in Vietnamese, keeping key information:
-                    {old_conversation}
-                Summary (in 2-3 sentences):"""
-                
-                # Call LLM để summary
-                summary_msg = await self.llm.ainvoke([
-                    {"role": "system", "content": "You are a helpful assistant that summarizes conversations."},
-                    {"role": "user", "content": summary_prompt}
-                ])
-                
-                summary_content = summary_msg.content if isinstance(summary_msg.content, str) else str(summary_msg.content)
-                
-                # Tạo history mới với summary + recent messages
-                summarized_history = [
-                    {"role": "system", "content": f"Previous conversation summary: {summary_content}"}
-                ] + recent_messages
-                
-                logger.info(f"Summarized {len(old_messages)} old messages, kept {len(recent_messages)} recent messages")
-                return summarized_history
-                
-            except Exception as e:
-                logger.error(f"Error summarizing history: {e}")
-                # Fallback: chỉ lấy recent messages
-                return chat_history[-max_length:]
+            Summary (in 2-3 sentences):"""
+            
+            # Call LLM để summary
+            summary_msg = await self.llm.ainvoke([
+                {"role": "system", "content": "You are a helpful assistant that summarizes conversations."},
+                {"role": "user", "content": summary_prompt}
+            ])
+            
+            summary_content = summary_msg.content if isinstance(summary_msg.content, str) else str(summary_msg.content)
+            
+            # Tạo history mới: summary + remaining messages
+            summarized_history = [
+                {"role": "system", "content": f"Previous conversation summary: {summary_content}"}
+            ] + remaining_messages
+            
+            logger.info(f"Summarized {len(old_messages)} old messages, kept {len(remaining_messages)} recent messages")
+            return summarized_history
+            
+        except Exception as e:
+            logger.error(f"Error summarizing history: {e}")
+            # Fallback: chỉ lấy recent messages
+            return chat_history[-max_length:]
