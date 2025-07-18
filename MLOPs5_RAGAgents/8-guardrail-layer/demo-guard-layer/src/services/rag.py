@@ -6,6 +6,7 @@ from src.services.retrieval import RetrievalService
 from src.constants.enum import LLMModel, LLMProvider
 from typing import Optional
 from src.services.redis_cache import redis_cache
+from nemoguardrails import LLMRails
 
 
 class Rag:
@@ -31,12 +32,13 @@ class Rag:
         )
         
 
-    @redis_cache.cache(ttl=60)
+    # @redis_cache.cache(ttl=60)
     async def get_embeddings_response(
         self, 
         question: str,
         session_id: Optional[str] = None,
         user_id: Optional[str] = None,
+        rails_service: Optional[LLMRails] = None,
     ):
         """Generate a response to a question using the LLM with embeddings."""
         # Use the generator service to get the response
@@ -44,7 +46,8 @@ class Rag:
             question=question,
             session_id=session_id,
             user_id=user_id,
+            rails_service=rails_service,
         )
-        print(f"Response: {response}")
+        print(f"Response from generator service: {response}")
         return response
     

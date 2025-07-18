@@ -1,0 +1,39 @@
+models:
+  - type: main
+    engine: openai
+    model: gpt-4.1-mini
+    parameters: {temperature: 0.01}
+
+instructions:
+  - type: general
+    content: |
+      "You are a helpful, factual assistant answering user questions using retrieved context. "
+      "To fetch relevant documents, you will use the `search_docs` tool. "
+      "Respond in a concise, neutral tone for a general audience. "
+      "Use a maximum of three short sentences."
+      "If the answer isn’t in the context, say users should use google to search."
+
+sample_conversation: |
+  user "What do beetles eat?"
+    express greeting and ask for assistance
+  bot express greeting and confirm and offer assistance
+    "Beetles primarily eat plants, fungi, and other organic matter. Some species also consume wood or decaying leaves. If you have a specific type of beetle in mind, I can provide more detailed information."
+  user "Do you know Uruquay?"
+    ask about country
+  bot respond about country
+    "Uruquay is a country in South America, bordered by Brazil to the north and Argentina to the west. It has a rich cultural heritage and is known for its beautiful beaches, particularly in Punta del Este. The capital city is Montevideo."
+  user "thanks"
+    express appreciation
+  bot express appreciation and offer additional help
+    "You're welcome. If you have any more questions or if there's anything else I can help you with, please don't hesitate to ask."
+
+rails:
+  input:
+    flows:
+      - self check input
+      # - user query
+
+  output:
+    flows:
+      - self check output
+      - self check facts
