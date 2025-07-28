@@ -7,10 +7,6 @@ from typing import AsyncGenerator
 from langfuse import observe, get_client
 from typing import Optional
 from langfuse.langchain import CallbackHandler
-from langchain_community.cache import RedisSemanticCache
-from langchain_openai import OpenAIEmbeddings
-from langchain_core.outputs import Generation
-from nemoguardrails import LLMRails
 
         
 class GeneratorService:
@@ -28,10 +24,6 @@ class GeneratorService:
             type="chat",
         )
         self.langfuse_handler = CallbackHandler()
-        self.semantic_cache = RedisSemanticCache(
-            redis_url="redis://localhost:6378",
-            embedding=OpenAIEmbeddings()
-        )
         
     
     async def _create_message(self, question: str):
@@ -52,12 +44,12 @@ class GeneratorService:
                 
         return messages
     
+    @observe(name="rag-service")
     async def generate(
         self, 
         question: str,
         session_id: Optional[str] = None,
         user_id: Optional[str] = None,
-        rails_service: Optional[LLMRails] = None,
     ):
         """Generate a response to a question using the LLM with tools."""
         if session_id or user_id:
@@ -69,49 +61,17 @@ class GeneratorService:
                 session_id=session_id,
                 user_id=user_id,
             )
-        
-        if rails_service:
-            guardrails_result = await rails_service.generate_async(prompt=question)
-            print(f"Guardrails result: {guardrails_result}")
-            return guardrails_result
-        else:
-            print("No guardrails service provided, proceeding with LLM generation.")
-
-        response = await self.get_response(question)
-        print(f"Response: {response}")
-        
-        return response
-    
-    @observe(name="rag-service")
-    async def get_response(
-        self,
-        question: str,
-    ):
-        if self.semantic_cache:
-            # Check if the question is already cached
-            cached_response = self.semantic_cache.lookup(question, 'rag-service')
-            print(f"Cached response: {cached_response}")
-            if cached_response:
-                return cached_response[0].text
             
         messages = await self._create_message(question)
-        # Get the final response from the last message
-        # The _create_message method now handles the complete conversation flow:
+        
+        # Finally, get response by invoking the LLM with the all messages
+        # Currently, list of messages includes:
         # 1. User question  
         # 2. AI message with tool calls (if any) 
         # 3. Tool responses (if any)
         response = await self.llm_with_tools.ainvoke(messages, config={"callbacks": [self.langfuse_handler]})
-
-        if response and self.semantic_cache and response.content:
-            # Cache the response if semantic cache is available
-            self.semantic_cache.update(question, 'rag-service', [
-                Generation(
-                    text=str(response.content), 
-                )]
-            )
-
         return response.content
-
+        
     async def generate_stream(self, question: str) -> AsyncGenerator[str, None]:
         """Generate a response to a question using the LLM with tools (streamed)."""
         messages = await self._create_message(question)

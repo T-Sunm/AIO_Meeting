@@ -5,18 +5,17 @@ from src.services.generator import GeneratorService
 from src.services.retrieval import RetrievalService
 from src.constants.enum import LLMModel, LLMProvider
 from typing import Optional
-from src.services.redis_cache import redis_cache
-from nemoguardrails import LLMRails
 
 
 class Rag:
     def __init__(self):
         self.llm_chat = init_chat_model(
-            LLMModel.OPENAI_GPT_4O_MINI.value,
+            LLMModel.OPENAI_GPT_4_1_MLOPS5.value,
             api_key=SETTINGS.OPENAI_API_KEY,
             temperature=SETTINGS.OPENAI_TEMPERATURE,
             model_provider=LLMProvider.OPENAI.value,
-        )   
+            base_url=SETTINGS.OPENAI_BASE_URL,
+        )
         
         self.retrieval_service = RetrievalService()
         self.search_tool = Tool(
@@ -32,13 +31,11 @@ class Rag:
         )
         
 
-    @redis_cache.cache(ttl=10)
     async def get_embeddings_response(
         self, 
         question: str,
         session_id: Optional[str] = None,
         user_id: Optional[str] = None,
-        rails_service: Optional[LLMRails] = None,
     ):
         """Generate a response to a question using the LLM with embeddings."""
         # Use the generator service to get the response
@@ -46,8 +43,6 @@ class Rag:
             question=question,
             session_id=session_id,
             user_id=user_id,
-            rails_service=rails_service,
         )
-        print(f"Response from generator service: {response}")
         return response
     

@@ -31,9 +31,9 @@ rails:
   input:
     flows:
       - self check input
-      # - user query
+      - user query
 
   output:
     flows:
       - self check output
-      - self check facts
+      # - self check facts
