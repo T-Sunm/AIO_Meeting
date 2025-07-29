@@ -3,24 +3,26 @@ services:
   litellm:
     image: ghcr.io/berriai/litellm:main-stable
     volumes:
-    - ./config.yaml:/app/config.yaml
+      - ./config.yaml:/app/config.yaml
     command:
-    - "--config=/app/config.yaml"
+      - "--config=/app/config.yaml"
     ports:
       - "4000:4000" # Map the container port to the host, change the host port if necessary
     environment:
       DATABASE_URL: "postgresql://llmproxy:dbpassword9090@db:5432/litellm"
       STORE_MODEL_IN_DB: "True" # allows adding models to proxy via UI
+      LITELLM_MASTER_KEY: "sk-1234"
     env_file:
       - .env
     depends_on:
-      - db  # Indicates that this service depends on the 'db' service, ensuring 'db' starts first
-    healthcheck:  # Defines the health check configuration for the container
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1" ]  # Command to execute for health check
-      interval: 30s  # Perform health check every 30 seconds
-      timeout: 10s   # Health check command times out after 10 seconds
-      retries: 3     # Retry up to 3 times if health check fails
-      start_period: 40s  # Wait 40 seconds after container start before beginning health checks
+      - db # Indicates that this service depends on the 'db' service, ensuring 'db' starts first
+    healthcheck:
+      # Defines the health check configuration for the container
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 http://localhost:4000/health/liveliness || exit 1" ] # Command to execute for health check
+      interval: 30s # Perform health check every 30 seconds
+      timeout: 10s # Health check command times out after 10 seconds
+      retries: 3 # Retry up to 3 times if health check fails
+      start_period: 40s # Wait 40 seconds after container start before beginning health checks
     networks:
       - routing_layer_network
 
@@ -37,7 +39,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data # Persists Postgres data across container restarts
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d litellm -U llmproxy"]
+      test: [ "CMD-SHELL", "pg_isready -d litellm -U llmproxy" ]
       interval: 1s
       timeout: 5s
       retries: 10
@@ -48,12 +50,11 @@ services:
     image: redis/redis-stack:latest
     container_name: routing_redis
     ports:
-      - ":6379"  # Redis
-      - "8003:8001"  # RedisInsight Web UI
+      - ":6379" # Redis
+      - "8003:8001" # RedisInsight Web UI
     restart: always
     networks:
       - routing_layer_network
-
 
 volumes:
   postgres_data:
@@ -61,4 +62,4 @@ volumes:
 
 networks:
   routing_layer_network:
-    driver: bridge  # Use a bridge network for isolation and communication between services
+    driver: bridge # Use a bridge network for isolation and communication between services
