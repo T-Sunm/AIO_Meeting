@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # OpenAI API key
     OPENAI_API_KEY: SecretStr
-    OPENAI_BASE_URL: str = "http://host.docker.internal:4000"
+    OPENAI_BASE_URL: str = "http://localhost:4000"
     OPENAI_TEMPERATURE: float = 0.7
 
     # Milvus configuration

@@ -31,3 +31,4 @@ pypdf==5.6.1
 tqdm==4.67.1
 nemoguardrails==0.14.1
 litellm==1.74.8
+langfuse==2.59.7
