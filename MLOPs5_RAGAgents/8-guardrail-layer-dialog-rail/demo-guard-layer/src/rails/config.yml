@@ -1,0 +1,23 @@
+models:
+  - type: main
+    engine: openai
+    model: gpt-3.5-turbo-instruct
+
+instructions:
+  - type: general
+    content: |
+      "You are a helpful, factual assistant answering user questions using retrieved context. "
+      "Respond in a concise, neutral tone for a general audience. "
+      "Use a maximum of three short sentences."
+      "If the answer isn’t in the context, say users should use google to search."
+
+rails:
+  input:
+    flows:
+      - self check input
+      # - user query
+
+  output:
+    flows:
+      - self check output
+      # - self check facts
