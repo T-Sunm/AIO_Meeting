@@ -1,0 +1,109 @@
+model_list:
+  - model_name: gpt-4.1-mlops5
+    litellm_params:
+      model: openai/gpt-4.1
+      api_key: os.environ/OPENAI_API_KEY_4_1
+      rpm: 6 # [OPTIONAL] Rate limit for this deployment: in requests per minute (rpm)
+      tags: ["paid"]
+      max_budget: 0.1 # (USD)
+      budget_duration: 1d # (Duration. can be 1s, 1m, 1h, 1d, 1mo)
+      weight: 1
+  - model_name: gpt-4.1-mlops5
+    litellm_params:
+      model: openai/gpt-4.1-mini
+      api_key: os.environ/OPENAI_API_KEY_4_1_MINI
+      tags: ["free", "default"]
+      weight: 2
+  - model_name: gpt-4o-mlops5
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY_4O
+      rpm: 6 # [OPTIONAL] Rate limit for this deployment: in requests per minute (rpm)
+      tags: ["paid"]
+      max_budget: 0.1 # (USD)
+      budget_duration: 1d # (Duration. can be 1s, 1m, 1h, 1d, 1mo)
+      weight: 1
+  - model_name: gpt-4o-mlops5
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY_4O_MINI
+      rpm: 6 # [OPTIONAL] Rate limit for this deployment: in requests per minute (rpm)
+      tags: ["free", "default"]
+      weight: 2
+  - model_name: gpt-3.5-mlops5
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_key: os.environ/OPENAI_API_KEY_3_5_TURBO
+      tags: ["free", "default"]
+      weight: 2
+
+  # - model_name: bedrock-claude-v1 
+  #   litellm_params:
+  #     model: bedrock/anthropic.claude-instant-v1
+  # - model_name: gpt-4o
+  #   litellm_params:
+  #     model: azure/gpt-4o-ca
+  #     api_base: https://my-endpoint-canada-berri992.openai.azure.com/
+  #     api_key: "os.environ/AZURE_API_KEY_CA"
+  #     rpm: 6
+  # - model_name: anthropic-claude
+  #   litellm_params: 
+  #     model: bedrock/anthropic.claude-instant-v1
+  #     ### [OPTIONAL] SET AWS REGION ###
+  #     aws_region_name: us-east-1
+  # - model_name: vllm-models
+  #   litellm_params:
+  #     model: openai/facebook/opt-125m # the `openai/` prefix tells litellm it's openai compatible
+  #     api_base: http://0.0.0.0:4000/v1
+  #     api_key: none
+  #     rpm: 1440
+  #   model_info: 
+  #     version: 2
+
+router_settings:
+  # Default model to use if no other model is specified
+  fallbacks: [{"gpt-4.1-mlops5": ["gpt-3.5-mlops5"]}]
+
+  # Enable or disable model tagging
+  enable_tag_filtering: True
+
+  # Budget settings for the routing layer
+  provider_budget_config:
+    openai:
+      budget_limit: 1 # (USD)
+      time_period: 1d # (Duration. can be 1s, 1m, 1h, 1d, 1mo)
+
+  # Redis settings for caching and rate limiting
+  redis_host: os.environ/REDIS_HOST
+  redis_port: os.environ/REDIS_PORT
+
+  # Cooldowns settings
+  allowed_fails: 3
+  cooldown_time: 30
+
+  # Retry policies for specific errors
+  retry_policy: {
+    "BadRequestErrorRetries": 3,
+    "ContentPolicyViolationErrorRetries": 4
+  }
+  allowed_fails_policy: {
+    "ContentPolicyViolationErrorAllowedFails": 1000, # Allow 1000 ContentPolicyViolationError before cooling down a deployment
+    "RateLimitErrorAllowedFails": 100 # Allow 100 RateLimitErrors before cooling down a deployment
+  }
+
+
+litellm_settings: # module level litellm settings - https://github.com/BerriAI/litellm/blob/main/litellm/__init__.py
+  drop_params: True
+  cache: true 
+  cache_params:
+    type: redis
+  success_callback: ["langfuse"] # OPTIONAL - if you want to start sending LLM Logs to Langfuse. Make sure to set `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` in your env
+  timeout: 30
+
+general_settings: 
+  master_key: sk-llmops # [OPTIONAL] Only use this if you to require all calls to contain this key (Authorization: Bearer sk-1234)
+  # alerting: ["slack"] # [OPTIONAL] If you want Slack Alerts for Hanging LLM requests, Slow llm responses, Budget Alerts. Make sure to set `SLACK_WEBHOOK_URL` in your env
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+
+  allowed_ips: ["*"] # [OPTIONAL] IP restrictions
