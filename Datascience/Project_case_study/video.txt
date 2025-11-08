@@ -1,0 +1,2 @@
+Sales Forecasting and Demand Prediction Using LightGBM and SHAP: https://www.youtube.com/watch?v=CQJFU7KBbww
+Time series Data Project PG&E Energy Analytics Challenge: https://www.youtube.com/watch?v=F4FJA7mFXfI
